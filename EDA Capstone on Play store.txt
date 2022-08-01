@@ -1,0 +1,94 @@
+# IMPORTING REQURE LIBRARIES
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+#READ CSV FILE
+df1 = pd.read_csv('/content/drive/MyDrive/Play Store Data.csv')
+#useless Data
+df1 = df1.drop(10472).reset_index(drop = True)
+df1 = df1.drop(9148).reset_index(drop = True)
+
+#TOP 5 ROWS OF DATASET
+df1.head()
+
+# LAST 5 ROWS OF DATASET
+df1.tail()
+
+# NO OF ROWS AND COLUMN IN DATASET
+df1.shape
+
+# USE INFO FUNCTION, TO KNOW THE NULL VALUES PARENT IN OUR DATASET AND DATA TYPE OF COLUMNS
+df1.info()
+
+#Data Cleaning
+#change Review to int type
+def get_int(elem):
+    return(int(elem))
+
+df1['Reviews'] =df1.apply(lambda x: get_int(x['Reviews']), axis = 1)
+
+#removing outliers of size
+def get_size(elem):
+  if elem[-1] != 'M':
+    return('1M')
+  else:
+    return(elem)
+
+df1['Size'] =df1.apply(lambda x: get_size(x['Size']), axis = 1)
+
+#making size as float
+def get_size_float(elem):
+  return(eval(elem[0:-1]))
+
+
+df1['Size_in_mb'] =df1.apply(lambda x: get_size_float(x['Size']), axis = 1)
+
+#change statyoe of install to 
+def get_install(elem):
+  if elem[-1] == '+':
+    elem =elem[0:-1]
+    y= elem.split(',')
+    y = ''.join(y)
+    return(eval(y))
+  else:
+    return(eval(elem))
+
+df1['Installs'] = df1.apply(lambda x: get_install(x['Installs']), axis = 1)
+
+#FILL NULL VALUE IN RATING
+df1['Rating'].fillna(0.0, inplace = True)
+
+#convert price into float
+def get_Price(elem):
+  if elem[0] == '$':
+    elem =elem[1:]
+    return(eval(elem))
+  else:
+    return(eval(elem))
+
+df1['dollar_price'] = df1.apply(lambda x: get_Price(x['Price']), axis = 1)
+
+#fill null value in current ver
+df1['Current Ver'].fillna(0.0, inplace = True)
+
+
+#fill null values and convert to float in Android Ver
+df1['Android Ver'].fillna('4.0', inplace = True)
+def get_ver(elem):
+  if elem != 'Varies with device':
+    elem =elem[0:3]
+    return(eval(elem))
+  else:
+    return(eval('4.0'))
+
+df1['min_Android_Ver'] = df1.apply(lambda x: get_ver(x['Android Ver']), axis = 1)
+
+#extracted year from Last Updated
+def get_year(elem):
+  elem =elem[-4:]
+  return(eval(elem))
+
+df1['year'] = df1.apply(lambda x: get_year(x['Last Updated']), axis = 1)
