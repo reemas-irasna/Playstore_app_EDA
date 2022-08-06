@@ -92,3 +92,68 @@ def get_year(elem):
   return(eval(elem))
 
 df1['year'] = df1.apply(lambda x: get_year(x['Last Updated']), axis = 1)
+
+#Create new Data frame to store all the clean and required values for EDA
+data_needed = ['App', 'Category', 'Rating', 'Reviews', 'Installs', 'Type', 'year', 
+       'Price', 'Content Rating', 'Size_in_mb', 'dollar_price', 'min_Android_Ver']
+df_new = df1[data_needed]
+
+df_new.head()
+
+#Q1 Best top 3 Category app less in size for both type
+
+top_category_app = df_new.groupby(['Category', 'Type']).agg({'Size_in_mb' : 'mean'}).sort_values(by = 'Category').reset_index()
+top_category_app.head()
+
+fig = px.histogram(top_category_app, x="Category", y="Size_in_mb",
+             color='Type', barmode='group',
+             height=700,title='Category vs Mean Size')
+fig.show()
+
+#Q2 Percentage of free and paid app
+
+free, paid = 0, 0
+for elem in df_new.Type:
+  if elem == 'Free':
+    free = free + 1
+  else:
+    paid = paid +1
+
+print(free, paid)
+
+free_percent = round((free / (free + paid)) * 100, 2)
+paid_percent = round((paid / (free + paid)) * 100, 2)
+
+f= 'free = ' + str(free_percent) + '%'
+p = 'paid = ' + str(paid_percent) + '%'
+label = [f, p]
+x = np.array([free, paid])
+plt.pie(x,  labels = label)
+
+df_new['Type'].value_counts().plot.pie(figsize = (15,10), autopct='%1.1f%%',title='Percentage of Free and Paid App')
+plt.legend()
+
+# Q3 correlation between year and minimum android version required 
+df_android=df_new.groupby(['year']).agg({'min_Android_Ver':'median'}).reset_index()
+print(df_android.head())
+sns.lmplot(x='year', y='min_Android_Ver',data=df_android,size=8).set(title='Correlation between Year and Android version')
+
+fig = px.scatter(df_android, x="year", y="min_Android_Ver", trendline="ols",title='Year vs Minimum Android Version')
+fig.show()
+
+
+# Q4 Distribution of App by Category
+df_distri=df_new.groupby(['Category']).agg({'App':'count'}).reset_index()
+df_distri.head()
+
+fig=px.bar(df_distri,x='Category', y='App',title='Distribution of App by Category',text_auto='.2s')
+fig.show()
+fig1 = px.pie(df_distri, values='App', names='Category', title='Distribution of App by Category')
+fig1.show()
+
+#Q5 Most review apps category wise
+df_most=df_new.groupby(['Category']).agg({'Reviews':'max'}).reset_index()
+
+fig=px.bar(df_most,x='Reviews', y='Category',title='Category vs Review',text_auto='.2s',height=800)
+fig.show()
+
