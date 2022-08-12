@@ -157,3 +157,83 @@ df_most=df_new.groupby(['Category']).agg({'Reviews':'max'}).reset_index()
 fig=px.bar(df_most,x='Reviews', y='Category',title='Category vs Review',text_auto='.2s',height=800)
 fig.show()
 
+# Q6 Number of apps present in play store category wise(free & paid)
+df_num = df_new.groupby(['Category','Type']).agg({'App' : 'count'}).sort_values(by = 'Category').reset_index()
+
+fig = px.line(df_num, x='Category', y='App', color='Type', symbol="Type")
+fig.show()
+
+fig = px.bar(df_num, x="App", y="Category", color="Type", title="Number of apps present in play store category wise(free & paid)", height=800,text_auto='.2s')
+fig.show()
+
+#Q7 Pearson Correlation – price, install, size, reviews, rating
+
+corr_variable = ['dollar_price', 'Installs', 'Size_in_mb', 'Reviews', 'Rating']
+df_pearson_corr = df_new[corr_variable]
+df_pearson_corr = df_pearson_corr.corr()
+
+plt.figure(figsize=(15,7))
+sns.heatmap(df_pearson_corr,fmt='.2f',linewidths=0.1,annot=True).set(title='Pearson Correlation – price, install, size, reviews, rating')
+
+#Q8	Distribution of App by Content Rating
+df_content_rat=df_new.groupby(['Content Rating']).agg({'App':'count'}).reset_index()
+df_content_rat.head()
+fig=px.bar(df_content_rat,x='Content Rating', y='App',title='Distribution of App by Content Rating',text_auto='.2s')
+fig.show()
+
+fig = px.bar(df_content_rat, x="Content Rating", y="App", color="Content Rating", text="Content Rating", text_auto='.2s',title='Distribution of App by Content Rating')
+fig.show()
+
+#Q9 rating distribution of apps
+plt.figure(figsize=(15,7))
+rating_distribution = sns.countplot(x="Rating" , data=df_new, palette = "Set1")
+rating_distribution.set_xticklabels(rating_distribution.get_xticklabels(), rotation=90, ha="right")
+plt.title("Rating distribution of Apps")
+
+#Q10 Variation of App with respect to Year
+df_year=df_new.groupby(['year']).agg({'App':'count'}).reset_index()
+fig = px.bar(df_year, x="year", y="App", color="year", text="year", text_auto='.2s',title='Apps vs Year')
+fig.show()
+
+#Q11 top five Revenue App
+def get_revenue(a,b):
+  return a*b
+df_new['Revenue'] = df_new.apply(lambda x: get_revenue(x['Installs'],x['dollar_price']), axis = 1)
+
+df_revenue=df_new.groupby(['App']).agg({'Revenue':'mean'}).sort_values(by='Revenue',ascending=False).reset_index()
+df_revenue[:5]
+
+fig = px.bar(df_revenue[:5], x="App", y="Revenue", color="App", text="App", text_auto='.2s',title='Revenue of The Top Five App')
+fig.show()
+
+#Q12 Distribution of Category by install
+df_install=df_new.groupby('Category')[['Installs']].sum().sort_values(by='Installs', ascending=False).reset_index()
+
+fig = px.bar(df_install, x="Installs", y="Category",color="Category",title='Category vs Installs', height=800)
+fig.show()
+
+
+\\ Data Cleaning of 2nd Dataset \\
+
+df_Review_data = pd.read_csv('/content/User Reviews.csv')
+df_Review_data.tail()
+df_Review_data.info()
+df_Review_data.drop_duplicates( keep='first', inplace=True, ignore_index=True)   # delete Duplicates Values
+df_Review_data.dropna(inplace=True)  # Removes All null values
+
+#Q13 Percentage of Positive, negative and neutral 
+df_Review_data['Sentiment'].value_counts().plot.pie(figsize = (15,10), autopct='%1.1f%%',title='Percentage of Positive, negative, neutral')
+plt.legend()
+
+df_Review_data['Sentiment'].value_counts().plot.bar(figsize = (15,10),title='Percentage of Positive, negative, neutral')
+plt.legend()
+
+df_sentiment=df_Review_data['Sentiment'].value_counts().reset_index()
+df_sentiment.head()
+
+fig1 = px.bar(df_sentiment, x='index',y='Sentiment',color='index', title='Distribution of App by Category')
+fig1.show()
+
+# Q14 Sentiment Polarity vs Sentiment Subjectivity
+fig = px.scatter(df_Review_data, x="Sentiment_Polarity", y="Sentiment_Subjectivity", color='Sentiment',title='Polarity vs Subjectivity')
+fig.show()
